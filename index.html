@@ -1,196 +1,234 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Golden Clicker Pro</title>
+    <title>Mega Clicker Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --primary-gold: #ffcc00;
-            --dark-bg: #0f0f0f;
-            --card-bg: #1e1e1e;
+            --primary: #ffcc00;
+            --bg: #000000;
+            --card: #151515;
+            --text: #ffffff;
         }
         body {
-            background-color: var(--dark-bg);
-            color: white;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
             height: 100vh;
             overflow: hidden;
-            user-select: none;
         }
-        .header {
-            width: 100%;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            background: linear-gradient(to bottom, rgba(255,204,0,0.1), transparent);
-        }
-        .header img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid var(--primary-gold);
-        }
-        .score-box {
-            text-align: center;
-            margin-top: 30px;
-        }
-        .score-title { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
-        .score-value { font-size: 48px; font-weight: 800; color: var(--primary-gold); margin: 5px 0; }
 
-        .coin-container {
+        /* Tab Contents */
+        .tab-content {
             flex-grow: 1;
-            display: flex;
+            display: none;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
         }
-        .coin {
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, #ffe066 0%, #ffcc00 50%, #cca300 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 40px rgba(255, 204, 0, 0.4), inset 0 0 20px rgba(255,255,255,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 100px;
-            cursor: pointer;
-            transition: transform 0.05s ease;
-            position: relative;
-        }
-        .coin:active { transform: scale(0.92) rotate(2deg); }
+        .active { display: flex; }
 
-        .footer-info {
+        /* Navigation */
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            background: var(--card);
+            padding: 15px 0;
+            border-top: 1px solid #333;
+            padding-bottom: 30px;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #888;
+            cursor: pointer;
+        }
+        .nav-item.active-nav { color: var(--primary); }
+        .nav-icon { font-size: 24px; margin-bottom: 5px; }
+
+        /* Home Style */
+        .user-card {
+            background: var(--card);
             width: 90%;
-            background: var(--card-bg);
-            padding: 15px;
+            padding: 20px;
             border-radius: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+            text-align: center;
+            margin-top: 20px;
         }
-        .level-bar {
-            width: 100%;
-            height: 10px;
-            background: #333;
-            border-radius: 5px;
-            margin-top: 8px;
-            overflow: hidden;
+        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 10px; }
+
+        /* Earn (Tap) Style */
+        .coin {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #ffcc00, #cc9900);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            margin: 50px 0;
+            box-shadow: 0 0 50px rgba(255, 204, 0, 0.3);
+            transition: transform 0.05s;
         }
-        .level-progress {
-            width: 0%;
-            height: 100%;
-            background: var(--primary-gold);
-            transition: width 0.3s ease;
+        .coin:active { transform: scale(0.95); }
+
+        /* Profile Style */
+        .stat-row {
+            width: 90%;
+            background: var(--card);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .stat-label { color: #aaa; }
+        .stat-value { font-weight: bold; color: var(--primary); }
+
+        .score-large { font-size: 40px; font-weight: bold; color: var(--primary); margin: 20px 0; }
+        
+        /* Animation */
+        @keyframes float {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+        .floating-text {
+            position: fixed;
+            color: var(--primary);
+            font-weight: bold;
+            pointer-events: none;
+            animation: float 0.7s ease-out forwards;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div id="photo-container"></div>
-        <div style="text-align: left;">
-            <div style="font-size: 12px; color: #888;">PLAYER</div>
-            <div id="user-name" style="font-weight: bold; font-size: 18px;">Guest User</div>
+    <div id="home" class="tab-content active">
+        <div class="user-card">
+            <div id="photo">👤</div>
+            <h2 id="username">Guest User</h2>
+            <p style="color: #888;">Welcome back, Champion!</p>
+        </div>
+        <div class="score-large">💰 <span class="total-balance">0</span></div>
+        <div class="stat-row">
+            <span>Rank</span>
+            <span style="color: gold;">Gold Miner</span>
         </div>
     </div>
 
-    <div class="score-box">
-        <div class="score-title">Total Balance</div>
-        <div class="score-value" id="score">0</div>
+    <div id="earn" class="tab-content">
+        <div class="score-large">💰 <span class="total-balance">0</span></div>
+        <div class="coin" id="tap-btn">🪙</div>
+        <p style="color: #888;">Tap to Earn Coins</p>
     </div>
 
-    <div class="coin-container">
-        <div id="coin" class="coin">🪙</div>
-    </div>
-
-    <div class="footer-info">
-        <div style="display: flex; justify-content: space-between; font-size: 13px;">
-            <span>Level: Silver</span>
-            <span id="level-text">0 / 1000</span>
+    <div id="profile" class="tab-content">
+        <h2>Your Statistics</h2>
+        <div class="score-large">💰 <span class="total-balance">0</span></div>
+        <div class="stat-row">
+            <span class="stat-label">Tap Profit</span>
+            <span class="stat-value">+1 / tap</span>
         </div>
-        <div class="level-bar">
-            <div id="progress" class="level-progress"></div>
+        <div class="stat-row">
+            <span class="stat-label">Daily Income</span>
+            <span class="stat-value" id="daily-income">0</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Tap Speed</span>
+            <span class="stat-value">100% Fully Ready</span>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active-nav" onclick="showTab('home', this)">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="showTab('earn', this)">
+            <span class="nav-icon">⚡</span>
+            <span>Earn</span>
+        </div>
+        <div class="nav-item" onclick="showTab('profile', this)">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        const scoreDisplay = document.getElementById('score');
-        const progress = document.getElementById('progress');
-        const levelText = document.getElementById('level-text');
-        const coin = document.getElementById('coin');
+        let score = parseInt(localStorage.getItem('mega_score')) || 0;
+        let dailyLimit = parseInt(localStorage.getItem('daily_score')) || 0;
 
-        // ১. সেভ করা স্কোর লোড করা (localStorage)
-        let score = parseInt(localStorage.getItem('gameScore')) || 0;
-        updateUI();
+        function updateDisplay() {
+            document.querySelectorAll('.total-balance').forEach(el => {
+                el.innerText = score.toLocaleString();
+            });
+            document.getElementById('daily-income').innerText = dailyLimit.toLocaleString();
+        }
 
-        // ২. টেলিগ্রাম ইউজার ডাটা সেট করা
+        // Tab System
+        function showTab(tabName, el) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active-nav'));
+            
+            document.getElementById(tabName).classList.add('active');
+            el.classList.add('active-nav');
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        // Tap Mechanics
+        const tapBtn = document.getElementById('tap-btn');
+        tapBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            score++;
+            dailyLimit++;
+            updateDisplay();
+            saveData();
+            
+            tg.HapticFeedback.impactOccurred('medium');
+
+            // Floating text for each touch point (Multi-touch ready)
+            for(let i=0; i < e.touches.length; i++) {
+                createFloatingText(e.touches[i].clientX, e.touches[i].clientY);
+            }
+        });
+
+        function createFloatingText(x, y) {
+            const div = document.createElement('div');
+            div.innerText = '+1';
+            div.className = 'floating-text';
+            div.style.left = x + 'px';
+            div.style.top = y + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 700);
+        }
+
+        function saveData() {
+            localStorage.setItem('mega_score', score);
+            localStorage.setItem('daily_score', dailyLimit);
+        }
+
+        // Initialize Telegram User
         const user = tg.initDataUnsafe?.user;
         if (user) {
-            document.getElementById('user-name').innerText = user.first_name;
+            document.getElementById('username').innerText = user.first_name;
             if (user.photo_url) {
-                document.getElementById('photo-container').innerHTML = `<img src="${user.photo_url}">`;
-            } else {
-                document.getElementById('photo-container').innerHTML = `<div style="width:50px; height:50px; border-radius:50%; background:#444; display:flex; align-items:center; justify-content:center; border:2px solid var(--primary-gold)">${user.first_name[0]}</div>`;
+                document.getElementById('photo').innerHTML = `<img src="${user.photo_url}" class="avatar">`;
             }
         }
 
+        updateDisplay();
         tg.expand();
-        tg.enableClosingConfirmation();
-
-        // ৩. ক্লিক হ্যান্ডলার
-        coin.onclick = (e) => {
-            score++;
-            updateUI();
-            saveScore();
-            
-            // ভাইব্রেশন
-            tg.HapticFeedback.impactOccurred('light');
-
-            // ক্লিক এনিমেশন (ভাসমান +১)
-            showFloatingText(e.clientX, e.clientY);
-        };
-
-        function updateUI() {
-            scoreDisplay.innerText = score.toLocaleString();
-            let goal = 1000;
-            let percent = (score / goal) * 100;
-            if (percent > 100) percent = 100;
-            progress.style.width = percent + '%';
-            levelText.innerText = `${score} / ${goal}`;
-        }
-
-        function saveScore() {
-            localStorage.setItem('gameScore', score);
-        }
-
-        function showFloatingText(x, y) {
-            const text = document.createElement('div');
-            text.innerText = '+1';
-            text.style.position = 'fixed';
-            text.style.left = x + 'px';
-            text.style.top = y + 'px';
-            text.style.color = '#ffcc00';
-            text.style.fontWeight = 'bold';
-            text.style.pointerEvents = 'none';
-            text.style.animation = 'floatUp 0.8s ease-out forwards';
-            document.body.appendChild(text);
-            setTimeout(() => text.remove(), 800);
-        }
     </script>
-
-    <style>
-        @keyframes floatUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-100px); opacity: 0; }
-        }
-    </style>
 </body>
 </html>
