@@ -1,17 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rabbit Clicker Pro</title>
+    <title>White Rabbit Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --primary: #ffffff;
-            --accent: #ff9500; /* Carrot Orange */
-            --bg: #0a0a0a;
-            --card-bg: rgba(255, 255, 255, 0.08);
-            --nav-bg: rgba(15, 15, 15, 0.95);
+            --accent: #ff7b00;
+            --bg: #050505;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -20,7 +19,7 @@
             background-color: var(--bg);
             background-image: radial-gradient(circle at top, #222 0%, #000 100%);
             color: white;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
             height: 100vh;
             display: flex;
@@ -28,7 +27,6 @@
             overflow: hidden;
         }
 
-        /* Tab Content */
         .tab-content {
             display: none;
             flex-direction: column;
@@ -38,184 +36,169 @@
             padding: 20px;
             padding-bottom: 120px;
             overflow-y: auto;
-            animation: slideUp 0.4s ease-out;
         }
 
-        .active { display: flex; }
+        .active { display: flex; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Score */
+        .balance-value { font-size: 55px; font-weight: 900; color: var(--primary); margin: 20px 0; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
-        /* Score Display */
-        .balance-value { 
-            font-size: 50px; 
-            font-weight: 900; 
-            color: var(--primary); 
-            margin: 15px 0; 
-            text-shadow: 0 0 20px rgba(255,255,255,0.2); 
-        }
-
-        /* Rabbit (Tap Area) */
-        .rabbit-container {
+        /* CSS Rabbit - No image needed */
+        .rabbit-tap-area {
             position: relative;
-            margin: 40px 0;
-            cursor: pointer;
-        }
-
-        .rabbit {
             width: 250px;
             height: 250px;
-            background: url('https://img.icons8.com/isometric-folders/512/rabbit.png'); /* White Rabbit Placeholder */
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            /* মুখে গাজর ইফেক্ট এর জন্য একটি ছোট ইমোজি */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .rabbit-body {
+            width: 140px;
+            height: 180px;
+            background: #fff;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             position: relative;
+            box-shadow: 0 0 40px rgba(255,255,255,0.2);
+            transition: transform 0.1s;
         }
-        
-        /* মুখে গাজর */
-        .rabbit::after {
-            content: '🥕';
+
+        /* Ears */
+        .rabbit-body::before, .rabbit-body::after {
+            content: '';
             position: absolute;
-            bottom: 40%;
-            left: 55%;
-            font-size: 40px;
-            transform: rotate(-20deg);
+            top: -60px;
+            width: 40px;
+            height: 90px;
+            background: #fff;
+            border-radius: 50% 50% 10% 10%;
+        }
+        .rabbit-body::before { left: 20px; transform: rotate(-10deg); }
+        .rabbit-body::after { right: 20px; transform: rotate(10deg); }
+
+        /* Mouth Carrot */
+        .carrot {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%) rotate(20deg);
+            font-size: 45px;
+            z-index: 10;
         }
 
-        .rabbit-active { transform: scale(1.15) rotate(2deg); }
+        .rabbit-active { transform: scale(1.1); }
 
-        /* Plus One Animation */
-        .plus-one {
-            position: absolute; color: var(--accent); font-size: 35px; font-weight: 800;
-            pointer-events: none; animation: floatUp 0.8s forwards; z-index: 100;
+        /* Tasks */
+        .task-card {
+            width: 100%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
-        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-150px) scale(1.5); opacity: 0; } }
 
-        /* Navigation Bar & Animation */
+        .btn-join { background: white; color: black; border: none; padding: 10px 18px; border-radius: 12px; font-weight: bold; }
+        .btn-check { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: bold; display: none; }
+
+        /* Nav Bar Animation */
         .nav-bar {
             position: fixed; bottom: 20px; left: 15px; right: 15px;
-            height: 75px; background: var(--nav-bg);
+            height: 75px; background: rgba(20,20,20,0.95);
             border-radius: 30px; display: flex; justify-content: space-around;
             align-items: center; border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
         }
 
-        .nav-item { 
-            display: flex; flex-direction: column; align-items: center; 
-            color: #666; font-size: 11px; transition: all 0.3s;
-        }
-
-        .nav-item.active-nav { 
-            color: var(--accent); 
-            transform: scale(1.2); 
-            animation: navBounce 0.4s ease;
-        }
-
-        @keyframes navBounce {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1.2); }
-        }
-
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 11px; transition: 0.3s; }
+        .nav-item.active-nav { color: var(--primary); transform: translateY(-5px) scale(1.1); }
         .nav-icon { font-size: 24px; margin-bottom: 4px; }
 
-        /* Task Items */
-        .task-item {
-            width: 100%; background: var(--card-bg);
-            padding: 18px; border-radius: 20px; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
+        .plus-one {
+            position: absolute; color: white; font-size: 30px; font-weight: bold;
+            pointer-events: none; animation: floatUp 0.7s forwards;
         }
-
-        .btn {
-            background: var(--accent); color: white; border: none;
-            padding: 10px 20px; border-radius: 12px; font-weight: bold;
-        }
+        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-130px); opacity: 0; } }
     </style>
 </head>
 <body>
 
     <div id="home" class="tab-content active">
-        <div style="background: var(--card-bg); padding: 20px; border-radius: 25px; width: 100%; text-align: center;">
-            <div id="user-pfp">👤</div>
-            <h2 id="user-name" style="margin: 10px 0;">Bunny Hunter</h2>
-            <div style="color: var(--accent); font-weight: bold;">🥕 Elite Member</div>
-        </div>
+        <h2 style="margin-top: 20px;">Welcome</h2>
         <div class="balance-value" id="home-bal">0</div>
-        <button style="width: 100%; padding: 15px; border-radius: 20px; background: white; color: black; font-weight: bold; border: none;" onclick="inviteFriend()">Invite & Earn 1,000 🥕</button>
+        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 25px; width: 100%; text-align: center;">
+            <p>Invite friends and get 1,000 Coins!</p>
+            <button onclick="inviteFriend()" style="width: 100%; padding: 12px; border-radius: 12px; background: white; color: black; font-weight: bold; border: none;">Invite Friend</button>
+        </div>
     </div>
 
     <div id="earn" class="tab-content">
         <div class="balance-value" id="tap-bal">0</div>
-        <div class="rabbit-container" id="rabbit-tap">
-            <div class="rabbit" id="rabbit-img"></div>
+        <div class="rabbit-tap-area" id="tap-area">
+            <div class="rabbit-body" id="rabbit">
+                <div class="carrot">🥕</div>
+            </div>
         </div>
-        <div style="color: #aaa; background: rgba(255,149,0,0.1); padding: 8px 20px; border-radius: 15px;">
-            Tap the Rabbit to Eat Carrots!
-        </div>
+        <p style="color: #666; margin-top: 30px;">Tap the White Rabbit!</p>
     </div>
 
     <div id="tasks" class="tab-content">
-        <h2 style="margin-bottom: 5px;">Tasks</h2>
-        <p style="color: #888; margin-bottom: 30px;">Join channels and get free coins</p>
+        <h2 style="margin-bottom: 5px;">Social Tasks</h2>
+        <p style="color: #888; margin-bottom: 25px;">Join & Verify to earn coins</p>
         
-        <div class="task-item">
+        <div class="task-card" id="task1">
             <div>
                 <div style="font-weight: bold;">Join Channel 1</div>
-                <div style="color: var(--accent);">+5,000 Coins</div>
+                <div style="color: #ff9500;">+5,000 Coins</div>
             </div>
-            <button class="btn" onclick="doTask('https://t.me/jkt_earning_zone20', 5000, this)">Claim</button>
+            <button class="btn-join" onclick="startTask(1, 'https://t.me/jkt_earning_zone20')">Join</button>
+            <button class="btn-check" id="check1" onclick="checkTask(1, 5000)">Check</button>
         </div>
 
-        <div class="task-item">
+        <div class="task-card" id="task2">
             <div>
                 <div style="font-weight: bold;">Join Group 2</div>
-                <div style="color: var(--accent);">+3,000 Coins</div>
+                <div style="color: #ff9500;">+3,000 Coins</div>
             </div>
-            <button class="btn" onclick="doTask('https://t.me/+cAq8TiohRXIzZmFl', 3000, this)">Claim</button>
+            <button class="btn-join" onclick="startTask(2, 'https://t.me/+cAq8TiohRXIzZmFl')">Join</button>
+            <button class="btn-check" id="check2" onclick="checkTask(2, 3000)">Check</button>
         </div>
 
-        <div class="task-item">
+        <div class="task-card" id="task3">
             <div>
-                <div style="font-weight: bold;">Join Support Group</div>
-                <div style="color: var(--accent);">+2,000 Coins</div>
+                <div style="font-weight: bold;">Support Group</div>
+                <div style="color: #ff9500;">+2,000 Coins</div>
             </div>
-            <button class="btn" onclick="doTask('https://t.me/jkt_support99', 2000, this)">Claim</button>
+            <button class="btn-join" onclick="startTask(3, 'https://t.me/jkt_support99')">Join</button>
+            <button class="btn-check" id="check3" onclick="checkTask(3, 2000)">Check</button>
         </div>
     </div>
 
     <div id="profile" class="tab-content">
-        <h2>Profile</h2>
-        <div style="background: var(--card-bg); width: 100%; padding: 25px; border-radius: 25px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                <span>Total Carrots:</span> <span id="prof-bal" style="color: var(--accent); font-weight: 900;">0</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; color: #888;">
-                <span>Total Taps:</span> <span id="prof-daily">0</span>
-            </div>
+        <h2>My Stats</h2>
+        <div style="background: rgba(255,255,255,0.05); width: 100%; padding: 25px; border-radius: 25px;">
+            <p>Total Balance: <span id="prof-bal" style="color: gold; font-weight: bold;">0</span></p>
+            <p>Status: <span style="color: #55ff55;">Active</span></p>
         </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active-nav" onclick="switchTab('home', this)">
-            <span class="nav-icon">🏠</span><span>Home</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('earn', this)">
-            <span class="nav-icon">🥕</span><span>Earn</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('tasks', this)">
-            <span class="nav-icon">📋</span><span>Tasks</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('profile', this)">
-            <span class="nav-icon">👤</span><span>Profile</span>
-        </div>
+        <div class="nav-item active-nav" onclick="switchTab('home', this)"><span class="nav-icon">🏠</span>Home</div>
+        <div class="nav-item" onclick="switchTab('earn', this)"><span class="nav-icon">🐇</span>Earn</div>
+        <div class="nav-item" onclick="switchTab('tasks', this)"><span class="nav-icon">📋</span>Tasks</div>
+        <div class="nav-item" onclick="switchTab('profile', this)"><span class="nav-icon">👤</span>Profile</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         let score = parseInt(localStorage.getItem('rb_score')) || 0;
-        let taps = parseInt(localStorage.getItem('rb_taps')) || 0;
+        let completedTasks = JSON.parse(localStorage.getItem('rb_tasks')) || [];
 
         function switchTab(id, el) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -225,16 +208,17 @@
             tg.HapticFeedback.selectionChanged();
         }
 
-        const rabbit = document.getElementById('rabbit-tap');
-        const rabbitImg = document.getElementById('rabbit-img');
+        // Tap Mechanics
+        const tapArea = document.getElementById('tap-area');
+        const rabbit = document.getElementById('rabbit');
 
-        rabbit.addEventListener('touchstart', (e) => {
+        tapArea.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            rabbitImg.classList.add('rabbit-active');
-            setTimeout(() => rabbitImg.classList.remove('rabbit-active'), 100);
+            rabbit.classList.add('rabbit-active');
+            setTimeout(() => rabbit.classList.remove('rabbit-active'), 100);
             
             for (let i = 0; i < e.touches.length; i++) {
-                score++; taps++;
+                score++;
                 createPlus(e.touches[i].clientX, e.touches[i].clientY);
             }
             update();
@@ -246,38 +230,59 @@
             d.innerText = '+1'; d.className = 'plus-one';
             d.style.left = x + 'px'; d.style.top = y + 'px';
             document.body.appendChild(d);
-            setTimeout(() => d.remove(), 800);
+            setTimeout(() => d.remove(), 700);
         }
 
-        function doTask(url, reward, btn) {
+        // Task Mechanics
+        function startTask(id, url) {
             tg.openTelegramLink(url);
-            btn.innerText = "Wait...";
+            // শো চেক বাটন এবং হাইড জয়েন বাটন
+            document.querySelector(`#task${id} .btn-join`).style.display = 'none';
+            document.querySelector(`#task${id} .btn-check`).style.display = 'block';
+        }
+
+        function checkTask(id, reward) {
+            const btn = document.getElementById(`check${id}`);
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
             setTimeout(() => {
-                score += reward;
-                update();
-                btn.innerText = "Done ✅";
-                btn.disabled = true;
-                btn.style.background = "#333";
-                tg.showAlert("You got " + reward + " carrots!");
-            }, 4000);
+                if(Math.random() > 0.1) { // সিমুলেশন: ৯৯% ক্ষেত্রে সাকসেস হবে
+                    score += reward;
+                    completedTasks.push(id);
+                    localStorage.setItem('rb_tasks', JSON.stringify(completedTasks));
+                    btn.innerText = "Claimed ✅";
+                    btn.style.background = "#333";
+                    update();
+                    tg.showAlert("Success! You received " + reward + " coins.");
+                } else {
+                    btn.innerText = "Failed! Try Again";
+                    btn.disabled = false;
+                    tg.showAlert("Please make sure you joined the channel!");
+                }
+            }, 3000);
         }
 
         function inviteFriend() {
-            const inviteLink = `https://t.me/${tg.initDataUnsafe?.user?.username || 'bot'}?start=ref`;
-            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=Join my Rabbit Team! 🥕`);
+            tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/YourBotLink&text=Join Rabbit Clicker!`);
         }
 
         function update() {
             localStorage.setItem('rb_score', score);
-            localStorage.setItem('rb_taps', taps);
             document.querySelectorAll('#home-bal, #tap-bal, #prof-bal').forEach(el => el.innerText = score.toLocaleString());
-            document.getElementById('prof-daily').innerText = taps.toLocaleString();
-        }
-
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            document.getElementById('user-name').innerText = user.first_name;
-            if (user.photo_url) document.getElementById('user-pfp').innerHTML = `<img src="${user.photo_url}" style="width:60px; height:60px; border-radius:50%; border:2px solid white;">`;
+            
+            // টাস্ক অলরেডি কমপ্লিট থাকলে সেট করা
+            completedTasks.forEach(id => {
+                const card = document.getElementById(`task${id}`);
+                if(card) {
+                    card.querySelector('.btn-join').style.display = 'none';
+                    const checkBtn = card.querySelector('.btn-check');
+                    checkBtn.style.display = 'block';
+                    checkBtn.innerText = "Claimed ✅";
+                    checkBtn.disabled = true;
+                    checkBtn.style.background = "#333";
+                }
+            });
         }
 
         update();
