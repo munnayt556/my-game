@@ -2,129 +2,195 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Mini Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Golden Clicker Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --tg-theme-bg: #1a1a1a;
-            --tg-theme-text: #ffffff;
-            --tg-theme-button: #248bdf;
+            --primary-gold: #ffcc00;
+            --dark-bg: #0f0f0f;
+            --card-bg: #1e1e1e;
         }
         body {
-            background-color: var(--tg-theme-bg);
-            color: var(--tg-theme-text);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100vh;
+            overflow: hidden;
             user-select: none;
         }
-        .user-info {
-            margin-top: 20px;
-            text-align: center;
-        }
-        .user-info img {
-            width: 60px;
-            border-radius: 50%;
-            border: 2px solid var(--tg-theme-button);
-        }
-        .score-container {
-            font-size: 40px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        #coin {
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, #fbc02d, #f57f17);
-            border-radius: 50%;
+        .header {
+            width: 100%;
+            padding: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 80px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.1s;
+            gap: 12px;
+            background: linear-gradient(to bottom, rgba(255,204,0,0.1), transparent);
         }
-        #coin:active { transform: scale(0.95); }
-        
-        .leaderboard {
-            width: 90%;
+        .header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-gold);
+        }
+        .score-box {
+            text-align: center;
             margin-top: 30px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 15px;
         }
-        .leaderboard h3 { margin-top: 0; text-align: center; }
-        .lb-item {
+        .score-title { font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+        .score-value { font-size: 48px; font-weight: 800; color: var(--primary-gold); margin: 5px 0; }
+
+        .coin-container {
+            flex-grow: 1;
             display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            align-items: center;
+            justify-content: center;
+        }
+        .coin {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #ffe066 0%, #ffcc00 50%, #cca300 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.4), inset 0 0 20px rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            cursor: pointer;
+            transition: transform 0.05s ease;
+            position: relative;
+        }
+        .coin:active { transform: scale(0.92) rotate(2deg); }
+
+        .footer-info {
+            width: 90%;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+        .level-bar {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .level-progress {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-gold);
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body>
 
-    <div class="user-info">
-        <div id="user-photo"></div>
-        <h2 id="user-name">Loading...</h2>
+    <div class="header">
+        <div id="photo-container"></div>
+        <div style="text-align: left;">
+            <div style="font-size: 12px; color: #888;">PLAYER</div>
+            <div id="user-name" style="font-weight: bold; font-size: 18px;">Guest User</div>
+        </div>
     </div>
 
-    <div class="score-container">
-        💰 <span id="score">0</span>
+    <div class="score-box">
+        <div class="score-title">Total Balance</div>
+        <div class="score-value" id="score">0</div>
     </div>
 
-    <div id="coin">🪙</div>
+    <div class="coin-container">
+        <div id="coin" class="coin">🪙</div>
+    </div>
 
-    <div class="leaderboard">
-        <h3>🏆 Leaderboard (Top 3)</h3>
-        <div id="lb-list">
-            <div class="lb-item"><span>1. Player One</span> <span>5000</span></div>
-            <div class="lb-item"><span>2. Player Two</span> <span>3500</span></div>
-            <div class="lb-item"><span>3. <span id="current-user-lb">You</span></span> <span id="current-user-score">0</span></div>
+    <div class="footer-info">
+        <div style="display: flex; justify-content: space-between; font-size: 13px;">
+            <span>Level: Silver</span>
+            <span id="level-text">0 / 1000</span>
+        </div>
+        <div class="level-bar">
+            <div id="progress" class="level-progress"></div>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        const scoreElement = document.getElementById('score');
-        const lbScoreElement = document.getElementById('current-user-score');
+        const scoreDisplay = document.getElementById('score');
+        const progress = document.getElementById('progress');
+        const levelText = document.getElementById('level-text');
         const coin = document.getElementById('coin');
-        
-        let score = 0;
 
-        // টেলিগ্রাম থেকে ইউজার ডাটা নেওয়া
+        // ১. সেভ করা স্কোর লোড করা (localStorage)
+        let score = parseInt(localStorage.getItem('gameScore')) || 0;
+        updateUI();
+
+        // ২. টেলিগ্রাম ইউজার ডাটা সেট করা
         const user = tg.initDataUnsafe?.user;
-
         if (user) {
-            document.getElementById('user-name').innerText = `Hello, ${user.first_name}!`;
-            document.getElementById('current-user-lb').innerText = user.first_name;
+            document.getElementById('user-name').innerText = user.first_name;
             if (user.photo_url) {
-                document.getElementById('user-photo').innerHTML = `<img src="${user.photo_url}" />`;
+                document.getElementById('photo-container').innerHTML = `<img src="${user.photo_url}">`;
+            } else {
+                document.getElementById('photo-container').innerHTML = `<div style="width:50px; height:50px; border-radius:50%; background:#444; display:flex; align-items:center; justify-content:center; border:2px solid var(--primary-gold)">${user.first_name[0]}</div>`;
             }
         }
 
-        tg.expand(); // অ্যাপ ফুল স্ক্রিন করা
+        tg.expand();
+        tg.enableClosingConfirmation();
 
-        coin.onclick = () => {
+        // ৩. ক্লিক হ্যান্ডলার
+        coin.onclick = (e) => {
             score++;
-            scoreElement.innerText = score;
-            lbScoreElement.innerText = score;
+            updateUI();
+            saveScore();
             
-            // মোবাইল ভাইব্রেশন
-            tg.HapticFeedback.impactOccurred('medium');
+            // ভাইব্রেশন
+            tg.HapticFeedback.impactOccurred('light');
+
+            // ক্লিক এনিমেশন (ভাসমান +১)
+            showFloatingText(e.clientX, e.clientY);
         };
 
-        // মেইন বাটন সেটআপ (টেলিগ্রামের নিচে বড় নীল বাটন)
-        tg.MainButton.text = "Save Progress";
-        tg.MainButton.show();
-        tg.MainButton.onClick(() => {
-            tg.showAlert(`Great job ${user?.first_name}! Your score ${score} is saved.`);
-        });
+        function updateUI() {
+            scoreDisplay.innerText = score.toLocaleString();
+            let goal = 1000;
+            let percent = (score / goal) * 100;
+            if (percent > 100) percent = 100;
+            progress.style.width = percent + '%';
+            levelText.innerText = `${score} / ${goal}`;
+        }
 
+        function saveScore() {
+            localStorage.setItem('gameScore', score);
+        }
+
+        function showFloatingText(x, y) {
+            const text = document.createElement('div');
+            text.innerText = '+1';
+            text.style.position = 'fixed';
+            text.style.left = x + 'px';
+            text.style.top = y + 'px';
+            text.style.color = '#ffcc00';
+            text.style.fontWeight = 'bold';
+            text.style.pointerEvents = 'none';
+            text.style.animation = 'floatUp 0.8s ease-out forwards';
+            document.body.appendChild(text);
+            setTimeout(() => text.remove(), 800);
+        }
     </script>
+
+    <style>
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+    </style>
 </body>
-  </html>
+</html>
