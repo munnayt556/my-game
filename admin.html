@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rabbit Admin - Secure Control</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0c; color: #e0e0e0; text-align: center; padding: 20px; }
+        .box { background: #1a1a1f; padding: 25px; border-radius: 15px; display: inline-block; border: 1px solid #ff9800; box-shadow: 0 4px 15px rgba(255,152,0,0.2); max-width: 95%; }
+        input, button { padding: 12px; margin: 10px 5px; border-radius: 8px; border: none; font-size: 16px; }
+        input { background: #2a2a2e; color: white; border: 1px solid #444; width: 200px; }
+        button { cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-login { background: #ff9800; color: #000; width: 100px; }
+        table { width: 100%; margin-top: 25px; border-collapse: collapse; background: #1a1a1f; }
+        th, td { border: 1px solid #333; padding: 12px; text-align: center; }
+        th { background: #ff9800; color: black; }
+        .btn-save { background: #4caf50; color: white; padding: 5px 15px; }
+        #admin-content { display: none; margin-top: 20px; }
+        .status-bar { font-size: 12px; color: #888; margin-top: 10px; word-break: break-all; }
+    </style>
+</head>
+<body>
+
+    <div id="login-box" class="box">
+        <h2 style="color:#ff9800;">🐰 Rabbit Miner Admin</h2>
+        <p>পাসওয়ার্ড দিয়ে লগইন করুন</p>
+        <input type="password" id="pass" placeholder="Enter Password">
+        <br>
+        <button class="btn-login" onclick="checkPass()">Login</button>
+    </div>
+
+    <div id="admin-content">
+        <div class="box" style="width: 100%; overflow-x: auto;">
+            <h2 style="color:#ff9800;">User Management</h2>
+            <div class="status-bar">API: https://collaborative-lite-guam-advisors.trycloudflare.com</div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Coins</th>
+                        <th>PPH</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="list">
+                    <tr><td colspan="4">Loading users...</td></tr>
+                </tbody>
+            </table>
+            <br>
+            <button onclick="loadUsers()" style="background:#2196f3; color:white;">Refresh List</button>
+        </div>
+    </div>
+
+    <script>
+        // আপনার নতুন API লিঙ্ক এখানে সেট করা আছে
+        const API_URL = "https://collaborative-lite-guam-advisors.trycloudflare.com";
+
+        // পাসওয়ার্ড চেক করার ফাংশন
+        function checkPass() {
+            const p = document.getElementById('pass').value;
+            if(p === "1234") { // আপনার পাসওয়ার্ড হলো 1234
+                document.getElementById('login-box').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+                loadUsers();
+            } else {
+                alert("ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।");
+            }
+        }
+
+        // ইউজার লিস্ট লোড করার ফাংশন
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API_URL}/admin/users`);
+                const users = await res.json();
+                const list = document.getElementById('list');
+                list.innerHTML = '';
+                
+                if(users.length === 0) {
+                    list.innerHTML = '<tr><td colspan="4">No users found.</td></tr>';
+                    return;
+                }
+
+                users.forEach(u => {
+                    list.innerHTML += `
+                        <tr>
+                            <td>${u.uid}</td>
+                            <td><input type="number" id="c-${u.uid}" value="${Math.floor(u.coins)}" style="width:80px;"></td>
+                            <td><input type="number" id="p-${u.uid}" value="${u.pph}" style="width:60px;"></td>
+                            <td><button class="btn-save" onclick="update('${u.uid}')">Save</button></td>
+                        </tr>
+                    `;
+                });
+            } catch (err) {
+                alert("Error: Server is offline! Check Termux.");
+            }
+        }
+
+        // ডাটা আপডেট করার ফাংশন
+        async function update(uid) {
+            const coins = document.getElementById(`c-${uid}`).value;
+            const pph = document.getElementById(`p-${uid}`).value;
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/update`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ uid, coins, pph })
+                });
+                if(response.ok) {
+                    alert("User " + uid + " updated successfully!");
+                    loadUsers();
+                }
+            } catch (err) {
+                alert("Failed to update user.");
+            }
+        }
+    </script>
+</body>
+</html>
