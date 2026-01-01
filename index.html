@@ -1,292 +1,302 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>White Rabbit Clicker</title>
+    <title>Rabbit Miner Pro - Full Version</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #ffffff;
-            --accent: #ff7b00;
-            --bg: #050505;
+            --primary: #ff9800;
+            --primary-glow: rgba(255, 152, 0, 0.6);
+            --bg: #08080a;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-secondary: #a0a0a0;
+            --text-active: #ff9800;
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at top, #222 0%, #000 100%);
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
             margin: 0;
+            background: radial-gradient(circle at top, #1a1a1f 0%, #08080a 100%);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
-        }
-
-        .tab-content {
-            display: none;
+            display: flex;
             flex-direction: column;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            padding: 20px;
-            padding-bottom: 120px;
-            overflow-y: auto;
         }
 
-        .active { display: flex; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Score */
-        .balance-value { font-size: 55px; font-weight: 900; color: var(--primary); margin: 20px 0; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
-
-        /* CSS Rabbit - No image needed */
-        .rabbit-tap-area {
-            position: relative;
-            width: 250px;
-            height: 250px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
+        /* Top Bar */
+        .top-bar { padding: 25px 20px; text-align: center; }
+        .balance-area { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        #coins {
+            font-size: 42px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(to bottom, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .rabbit-body {
-            width: 140px;
-            height: 180px;
-            background: #fff;
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            position: relative;
+        .stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 15px; margin-top: 20px; padding: 0 20px;
+        }
+        .stat-box {
+            background: var(--card-bg); border: 1px solid var(--border);
+            padding: 12px; border-radius: 16px; backdrop-filter: blur(10px);
+        }
+        .stat-box small { display: block; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
+
+        /* Pages */
+        .page {
+            display: none; flex-direction: column; align-items: center;
+            flex: 1; overflow-y: auto; padding-bottom: 120px;
+        }
+        .active-page { display: flex; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* White Rabbit Design */
+        .rabbit-outer {
+            width: 280px; height: 280px; border-radius: 50%;
+            background: rgba(255, 152, 0, 0.05);
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255, 152, 0, 0.1); margin: 30px 0;
+        }
+        .rabbit-main {
+            width: 220px; height: 220px;
+            background: #ffffff; /* সাদা খরগোশ */
+            border-radius: 50% 50% 45% 45%;
+            position: relative; cursor: pointer;
             box-shadow: 0 0 40px rgba(255,255,255,0.2);
-            transition: transform 0.1s;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        /* কান */
+        .rabbit-main::before, .rabbit-main::after {
+            content: ''; position: absolute; top: -50px; width: 45px; height: 100px;
+            background: #fff; border-radius: 50% 50% 10% 10%;
+        }
+        .rabbit-main::before { left: 40px; transform: rotate(-15deg); }
+        .rabbit-main::after { right: 40px; transform: rotate(15deg); }
+        /* মুখে গাজর */
+        .carrot-mouth {
+            position: absolute; top: 100px; left: 50%;
+            transform: translateX(-50%) rotate(20deg); font-size: 50px;
         }
 
-        /* Ears */
-        .rabbit-body::before, .rabbit-body::after {
-            content: '';
-            position: absolute;
-            top: -60px;
-            width: 40px;
-            height: 90px;
-            background: #fff;
-            border-radius: 50% 50% 10% 10%;
+        .tapped { transform: scale(0.9) !important; }
+
+        /* Energy Bar */
+        .energy-container { width: 280px; text-align: center; }
+        .energy-bar-bg { height: 18px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); margin: 10px 0; }
+        #energy-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #f57c00); width: 100%; transition: width 0.3s; }
+
+        /* Buttons & Cards */
+        .btn-prime {
+            background: linear-gradient(90deg, #ff9800, #f57c00);
+            color: white; border: none; padding: 14px 25px; border-radius: 16px;
+            font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255,152,0,0.3);
         }
-        .rabbit-body::before { left: 20px; transform: rotate(-10deg); }
-        .rabbit-body::after { right: 20px; transform: rotate(10deg); }
-
-        /* Mouth Carrot */
-        .carrot {
-            position: absolute;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%) rotate(20deg);
-            font-size: 45px;
-            z-index: 10;
-        }
-
-        .rabbit-active { transform: scale(1.1); }
-
-        /* Tasks */
         .task-card {
-            width: 100%;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
+            width: 90%; background: var(--card-bg); border: 1px solid var(--border);
+            padding: 18px; border-radius: 20px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .btn-join { background: white; color: black; border: none; padding: 10px 18px; border-radius: 12px; font-weight: bold; }
-        .btn-check { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 12px; font-weight: bold; display: none; }
 
         /* Nav Bar Animation */
         .nav-bar {
-            position: fixed; bottom: 20px; left: 15px; right: 15px;
-            height: 75px; background: rgba(20,20,20,0.95);
-            border-radius: 30px; display: flex; justify-content: space-around;
-            align-items: center; border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            position: fixed; bottom: 20px; left: 5%; width: 90%; height: 80px;
+            background: rgba(15,15,18,0.95); border-radius: 30px;
+            display: flex; justify-content: space-around; align-items: center;
+            border: 1px solid var(--border); backdrop-filter: blur(20px); z-index: 1000;
         }
-
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 11px; transition: 0.3s; }
-        .nav-item.active-nav { color: var(--primary); transform: translateY(-5px) scale(1.1); }
-        .nav-icon { font-size: 24px; margin-bottom: 4px; }
-
-        .plus-one {
-            position: absolute; color: white; font-size: 30px; font-weight: bold;
-            pointer-events: none; animation: floatUp 0.7s forwards;
+        .nav-item {
+            background: none; border: none; color: #666; font-size: 11px;
+            font-weight: bold; display: flex; flex-direction: column; align-items: center;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-130px); opacity: 0; } }
+        .nav-item span { font-size: 28px; margin-bottom: 4px; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-8px) scale(1.1); }
+        .nav-item.active span { filter: drop-shadow(0 0 10px var(--primary-glow)); }
+
+        .float { position: absolute; color: white; font-weight: bold; font-family: 'Orbitron'; font-size: 28px; pointer-events: none; animation: floatUp 0.8s forwards; z-index: 2000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px); } }
     </style>
 </head>
 <body>
 
-    <div id="home" class="tab-content active">
-        <h2 style="margin-top: 20px;">Welcome</h2>
-        <div class="balance-value" id="home-bal">0</div>
-        <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 25px; width: 100%; text-align: center;">
-            <p>Invite friends and get 1,000 Coins!</p>
-            <button onclick="inviteFriend()" style="width: 100%; padding: 12px; border-radius: 12px; background: white; color: black; font-weight: bold; border: none;">Invite Friend</button>
+    <div class="top-bar">
+        <div class="balance-area">
+            <span id="coins">0</span>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-box"><small>Profit / Hr</small><b id="pph">0</b></div>
+            <div class="stat-box"><small>Recharge</small><b>1/sec</b></div>
         </div>
     </div>
 
-    <div id="earn" class="tab-content">
-        <div class="balance-value" id="tap-bal">0</div>
-        <div class="rabbit-tap-area" id="tap-area">
-            <div class="rabbit-body" id="rabbit">
-                <div class="carrot">🥕</div>
+    <div id="home" class="page active-page">
+        <div class="rabbit-outer">
+            <div class="rabbit-main" id="tap-btn">
+                <div class="carrot-mouth">🥕</div>
             </div>
         </div>
-        <p style="color: #666; margin-top: 30px;">Tap the White Rabbit!</p>
+        <div class="energy-container">
+            <div id="energy-text" style="font-weight:bold; font-size:18px;">1000 / 1000</div>
+            <div class="energy-bar-bg"><div id="energy-fill"></div></div>
+        </div>
+        <button class="btn-prime" style="margin-top: 20px; width: 250px;" id="daily-btn">Claim Daily Reward</button>
     </div>
 
-    <div id="tasks" class="tab-content">
-        <h2 style="margin-bottom: 5px;">Social Tasks</h2>
-        <p style="color: #888; margin-bottom: 25px;">Join & Verify to earn coins</p>
+    <div id="upgrade" class="page">
+        <h2 style="font-family: 'Orbitron'; margin-top: 20px;">Upgrades</h2>
+        <div id="upgrade-list" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+    </div>
+
+    <div id="tasks" class="page">
+        <h2 style="font-family: 'Orbitron'; margin-top: 20px;">Tasks</h2>
+        <p style="color: #888;">Join our channels to earn</p>
         
-        <div class="task-card" id="task1">
-            <div>
-                <div style="font-weight: bold;">Join Channel 1</div>
-                <div style="color: #ff9500;">+5,000 Coins</div>
-            </div>
-            <button class="btn-join" onclick="startTask(1, 'https://t.me/jkt_earning_zone20')">Join</button>
-            <button class="btn-check" id="check1" onclick="checkTask(1, 5000)">Check</button>
+        <div class="task-card">
+            <div><b>Join Channel</b><br><small style="color:var(--primary)">+5,000 🥕</small></div>
+            <button class="btn-prime" onclick="openTask(1, 'https://t.me/jkt_earning_zone20')">Join</button>
+            <button class="btn-prime" id="check-1" style="display:none; background:#333;" onclick="verifyTask(1, 5000)">Check</button>
         </div>
 
-        <div class="task-card" id="task2">
-            <div>
-                <div style="font-weight: bold;">Join Group 2</div>
-                <div style="color: #ff9500;">+3,000 Coins</div>
-            </div>
-            <button class="btn-join" onclick="startTask(2, 'https://t.me/+cAq8TiohRXIzZmFl')">Join</button>
-            <button class="btn-check" id="check2" onclick="checkTask(2, 3000)">Check</button>
-        </div>
-
-        <div class="task-card" id="task3">
-            <div>
-                <div style="font-weight: bold;">Support Group</div>
-                <div style="color: #ff9500;">+2,000 Coins</div>
-            </div>
-            <button class="btn-join" onclick="startTask(3, 'https://t.me/jkt_support99')">Join</button>
-            <button class="btn-check" id="check3" onclick="checkTask(3, 2000)">Check</button>
+        <div class="task-card">
+            <div><b>Join Group</b><br><small style="color:var(--primary)">+3,000 🥕</small></div>
+            <button class="btn-prime" onclick="openTask(2, 'https://t.me/+cAq8TiohRXIzZmFl')">Join</button>
+            <button class="btn-prime" id="check-2" style="display:none; background:#333;" onclick="verifyTask(2, 3000)">Check</button>
         </div>
     </div>
 
-    <div id="profile" class="tab-content">
-        <h2>My Stats</h2>
-        <div style="background: rgba(255,255,255,0.05); width: 100%; padding: 25px; border-radius: 25px;">
-            <p>Total Balance: <span id="prof-bal" style="color: gold; font-weight: bold;">0</span></p>
-            <p>Status: <span style="color: #55ff55;">Active</span></p>
+    <div id="profile" class="page">
+        <h2 style="font-family: 'Orbitron'; margin-top: 20px;">Your Stats</h2>
+        <div class="stat-box" style="width: 80%; padding: 30px; text-align: center; margin-top: 20px;">
+            <small>Total Carrots</small>
+            <h1 id="stat-coins" style="color:var(--primary); font-family:'Orbitron';">0</h1>
+            <button class="btn-prime" style="width:100%; margin-top:20px;">Withdraw</button>
         </div>
     </div>
 
-    <div class="nav-bar">
-        <div class="nav-item active-nav" onclick="switchTab('home', this)"><span class="nav-icon">🏠</span>Home</div>
-        <div class="nav-item" onclick="switchTab('earn', this)"><span class="nav-icon">🐇</span>Earn</div>
-        <div class="nav-item" onclick="switchTab('tasks', this)"><span class="nav-icon">📋</span>Tasks</div>
-        <div class="nav-item" onclick="switchTab('profile', this)"><span class="nav-icon">👤</span>Profile</div>
-    </div>
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="nav('home', this)"><span>🏠</span>Home</div>
+        <div class="nav-item" onclick="nav('upgrade', this)"><span>⛏️</span>Upgrade</div>
+        <div class="nav-item" onclick="nav('tasks', this)"><span>📋</span>Tasks</div>
+        <div class="nav-item" onclick="nav('profile', this)"><span>📊</span>Stats</div>
+    </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
-        let score = parseInt(localStorage.getItem('rb_score')) || 0;
-        let completedTasks = JSON.parse(localStorage.getItem('rb_tasks')) || [];
+        tg.expand();
 
-        function switchTab(id, el) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
-            document.getElementById(id).classList.add('active');
-            el.classList.add('active-nav');
-            tg.HapticFeedback.selectionChanged();
+        let coins = parseFloat(localStorage.getItem('rb_coins')) || 0;
+        let energy = parseFloat(localStorage.getItem('rb_energy')) || 1000;
+        let pph = 0;
+        const maxEnergy = 1000;
+
+        const upgrades = [
+            {id: 'm1', name: 'Rabbit Miner', icon: '🐰', level: parseInt(localStorage.getItem('lv_m1') || '0'), cost: 100, profit: 5},
+            {id: 'm2', name: 'Carrot Farm', icon: '🥕', level: parseInt(localStorage.getItem('lv_m2') || '0'), cost: 500, profit: 20}
+        ];
+
+        function calculateStats() {
+            pph = 0;
+            upgrades.forEach(u => pph += u.level * u.profit);
+            document.getElementById('pph').innerText = pph;
         }
 
-        // Tap Mechanics
-        const tapArea = document.getElementById('tap-area');
-        const rabbit = document.getElementById('rabbit');
-
-        tapArea.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            rabbit.classList.add('rabbit-active');
-            setTimeout(() => rabbit.classList.remove('rabbit-active'), 100);
-            
-            for (let i = 0; i < e.touches.length; i++) {
-                score++;
-                createPlus(e.touches[i].clientX, e.touches[i].clientY);
-            }
-            update();
-            tg.HapticFeedback.impactOccurred('medium');
-        });
-
-        function createPlus(x, y) {
-            const d = document.createElement('div');
-            d.innerText = '+1'; d.className = 'plus-one';
-            d.style.left = x + 'px'; d.style.top = y + 'px';
-            document.body.appendChild(d);
-            setTimeout(() => d.remove(), 700);
-        }
-
-        // Task Mechanics
-        function startTask(id, url) {
-            tg.openTelegramLink(url);
-            // শো চেক বাটন এবং হাইড জয়েন বাটন
-            document.querySelector(`#task${id} .btn-join`).style.display = 'none';
-            document.querySelector(`#task${id} .btn-check`).style.display = 'block';
-        }
-
-        function checkTask(id, reward) {
-            const btn = document.getElementById(`check${id}`);
-            btn.innerText = "Verifying...";
-            btn.disabled = true;
-
-            setTimeout(() => {
-                if(Math.random() > 0.1) { // সিমুলেশন: ৯৯% ক্ষেত্রে সাকসেস হবে
-                    score += reward;
-                    completedTasks.push(id);
-                    localStorage.setItem('rb_tasks', JSON.stringify(completedTasks));
-                    btn.innerText = "Claimed ✅";
-                    btn.style.background = "#333";
-                    update();
-                    tg.showAlert("Success! You received " + reward + " coins.");
-                } else {
-                    btn.innerText = "Failed! Try Again";
-                    btn.disabled = false;
-                    tg.showAlert("Please make sure you joined the channel!");
-                }
-            }, 3000);
-        }
-
-        function inviteFriend() {
-            tg.openTelegramLink(`https://t.me/share/url?url=https://t.me/YourBotLink&text=Join Rabbit Clicker!`);
-        }
-
-        function update() {
-            localStorage.setItem('rb_score', score);
-            document.querySelectorAll('#home-bal, #tap-bal, #prof-bal').forEach(el => el.innerText = score.toLocaleString());
-            
-            // টাস্ক অলরেডি কমপ্লিট থাকলে সেট করা
-            completedTasks.forEach(id => {
-                const card = document.getElementById(`task${id}`);
-                if(card) {
-                    card.querySelector('.btn-join').style.display = 'none';
-                    const checkBtn = card.querySelector('.btn-check');
-                    checkBtn.style.display = 'block';
-                    checkBtn.innerText = "Claimed ✅";
-                    checkBtn.disabled = true;
-                    checkBtn.style.background = "#333";
-                }
+        function renderUpgrades() {
+            const list = document.getElementById('upgrade-list');
+            list.innerHTML = '';
+            upgrades.forEach(u => {
+                const currentCost = Math.floor(u.cost * Math.pow(1.5, u.level));
+                list.innerHTML += `
+                    <div class="task-card">
+                        <div>${u.icon} <b>${u.name}</b><br><small>Lv ${u.level} | +${u.profit}/hr</small></div>
+                        <button class="btn-prime" onclick="buyUpgrade('${u.id}')">${currentCost}</button>
+                    </div>`;
             });
         }
 
-        update();
-        tg.expand();
+        function buyUpgrade(id) {
+            const u = upgrades.find(x => x.id === id);
+            const currentCost = Math.floor(u.cost * Math.pow(1.5, u.level));
+            if(coins >= currentCost) {
+                coins -= currentCost;
+                u.level++;
+                localStorage.setItem('lv_'+id, u.level);
+                calculateStats(); renderUpgrades(); updateUI();
+                tg.HapticFeedback.notificationOccurred('success');
+            } else { tg.showAlert("Need more carrots!"); }
+        }
+
+        function openTask(id, url) {
+            tg.openTelegramLink(url);
+            event.target.style.display = 'none';
+            document.getElementById('check-'+id).style.display = 'block';
+        }
+
+        function verifyTask(id, reward) {
+            const btn = document.getElementById('check-'+id);
+            btn.innerText = "Checking...";
+            setTimeout(() => {
+                coins += reward;
+                btn.innerText = "Claimed ✅";
+                btn.disabled = true;
+                updateUI();
+                tg.showAlert("You got "+reward+" Carrots!");
+            }, 3000);
+        }
+
+        const tapBtn = document.getElementById('tap-btn');
+        tapBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if(energy >= 1) {
+                coins += 1; energy -= 1;
+                tapBtn.classList.add('tapped');
+                setTimeout(() => tapBtn.classList.remove('tapped'), 100);
+                
+                const touch = e.touches[0];
+                const f = document.createElement('div');
+                f.className = 'float'; f.innerText = '+1';
+                f.style.left = touch.clientX + 'px'; f.style.top = touch.clientY + 'px';
+                document.body.appendChild(f);
+                setTimeout(() => f.remove(), 800);
+                
+                updateUI();
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+        });
+
+        function updateUI() {
+            document.getElementById('coins').innerText = Math.floor(coins).toLocaleString();
+            document.getElementById('stat-coins').innerText = Math.floor(coins).toLocaleString();
+            document.getElementById('energy-fill').style.width = (energy / maxEnergy * 100) + '%';
+            document.getElementById('energy-text').innerText = Math.floor(energy) + " / " + maxEnergy;
+            localStorage.setItem('rb_coins', coins);
+            localStorage.setItem('rb_energy', energy);
+        }
+
+        function nav(id, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(id).classList.add('active-page');
+            btn.classList.add('active');
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        setInterval(() => {
+            coins += (pph / 3600);
+            if(energy < maxEnergy) energy += 1;
+            updateUI();
+        }, 1000);
+
+        calculateStats(); renderUpgrades(); updateUI();
     </script>
 </body>
 </html>
