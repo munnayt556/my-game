@@ -3,254 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rabbit Miner Pro - Full Version</title>
+    <title>Rabbit Miner Pro - Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@600;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #ff9800;
-            --primary-glow: rgba(255, 152, 0, 0.6);
-            --bg: #08080a;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.08);
-            --text-secondary: #a0a0a0;
-            --text-active: #ff9800;
+            --primary-glow: rgba(255, 152, 0, 0.5);
+            --bg: #050507;
+            --card: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
         }
 
         body {
             margin: 0;
-            background: radial-gradient(circle at top, #1a1a1f 0%, #08080a 100%);
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 50% -20%, #2a1a0a 0%, #050507 100%);
             color: white;
             font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
             height: 100vh;
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        /* Top Bar */
-        .top-bar { padding: 25px 20px; text-align: center; }
-        .balance-area { display: flex; align-items: center; justify-content: center; gap: 12px; }
+        /* Top Bar Design */
+        .top-bar {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .balance-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
         #coins {
-            font-size: 42px;
+            font-size: 45px;
             font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            background: linear-gradient(to bottom, #fff, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 15px var(--primary-glow);
         }
 
-        .stats-grid {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 15px; margin-top: 20px; padding: 0 20px;
-        }
-        .stat-box {
-            background: var(--card-bg); border: 1px solid var(--border);
-            padding: 12px; border-radius: 16px; backdrop-filter: blur(10px);
-        }
-        .stat-box small { display: block; color: var(--text-secondary); font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
-
-        /* Pages */
+        /* Page Layout */
         .page {
-            display: none; flex-direction: column; align-items: center;
-            flex: 1; overflow-y: auto; padding-bottom: 120px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 10px 20px 120px;
+            overflow-y: auto;
         }
-        .active-page { display: flex; animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .active-page { display: flex; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        /* White Rabbit Design */
-        .rabbit-outer {
-            width: 280px; height: 280px; border-radius: 50%;
-            background: rgba(255, 152, 0, 0.05);
-            display: flex; align-items: center; justify-content: center;
-            border: 1px solid rgba(255, 152, 0, 0.1); margin: 30px 0;
+        /* Premium White Rabbit Design */
+        .rabbit-platform {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
+
+        .rabbit-glow {
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            background: var(--primary-glow);
+            filter: blur(60px);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
         .rabbit-main {
-            width: 220px; height: 220px;
-            background: #ffffff; /* সাদা খরগোশ */
+            width: 180px;
+            height: 210px;
+            background: #ffffff;
             border-radius: 50% 50% 45% 45%;
-            position: relative; cursor: pointer;
-            box-shadow: 0 0 40px rgba(255,255,255,0.2);
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        /* কান */
-        .rabbit-main::before, .rabbit-main::after {
-            content: ''; position: absolute; top: -50px; width: 45px; height: 100px;
-            background: #fff; border-radius: 50% 50% 10% 10%;
-        }
-        .rabbit-main::before { left: 40px; transform: rotate(-15deg); }
-        .rabbit-main::after { right: 40px; transform: rotate(15deg); }
-        /* মুখে গাজর */
-        .carrot-mouth {
-            position: absolute; top: 100px; left: 50%;
-            transform: translateX(-50%) rotate(20deg); font-size: 50px;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            box-shadow: 0 15px 0 #ddd, 0 20px 40px rgba(0,0,0,0.4);
+            transition: all 0.1s;
         }
 
-        .tapped { transform: scale(0.9) !important; }
+        /* Ears with Pink touch */
+        .rabbit-main::before, .rabbit-main::after {
+            content: ''; position: absolute; top: -60px; width: 45px; height: 110px;
+            background: #fff; border-radius: 50%; border-top: 15px solid #ffebee;
+        }
+        .rabbit-main::before { left: 35px; transform: rotate(-15deg); }
+        .rabbit-main::after { right: 35px; transform: rotate(15deg); }
+
+        .carrot-icon {
+            position: absolute; top: 110px; left: 50%;
+            transform: translateX(-50%) rotate(15deg);
+            font-size: 55px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+        }
+
+        .rabbit-main:active {
+            transform: translateY(10px);
+            box-shadow: 0 5px 0 #ddd, 0 10px 20px rgba(0,0,0,0.4);
+        }
 
         /* Energy Bar */
-        .energy-container { width: 280px; text-align: center; }
-        .energy-bar-bg { height: 18px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); margin: 10px 0; }
-        #energy-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #f57c00); width: 100%; transition: width 0.3s; }
-
-        /* Buttons & Cards */
-        .btn-prime {
-            background: linear-gradient(90deg, #ff9800, #f57c00);
-            color: white; border: none; padding: 14px 25px; border-radius: 16px;
-            font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer;
-            box-shadow: 0 5px 15px rgba(255,152,0,0.3);
+        .energy-box { width: 100%; max-width: 300px; margin-top: 20px; }
+        .energy-bar-wrap {
+            height: 14px; background: #1a1a1a; border-radius: 20px;
+            padding: 3px; border: 1px solid var(--border);
         }
-        .task-card {
-            width: 90%; background: var(--card-bg); border: 1px solid var(--border);
-            padding: 18px; border-radius: 20px; margin-bottom: 12px;
+        #energy-fill {
+            height: 100%; background: linear-gradient(90deg, #ff9800, #ffcc80);
+            border-radius: 20px; width: 100%; transition: width 0.2s;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* Cards & Tasks */
+        .card {
+            width: 100%; background: var(--card); border: 1px solid var(--border);
+            padding: 20px; border-radius: 24px; margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: blur(10px);
         }
 
-        /* Nav Bar Animation */
+        .btn-action {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            border: none; color: white; padding: 12px 20px;
+            border-radius: 15px; font-weight: bold; font-family: 'Inter';
+            box-shadow: 0 4px 15px rgba(245, 124, 0, 0.3);
+        }
+
+        /* Premium Nav Bar */
         .nav-bar {
-            position: fixed; bottom: 20px; left: 5%; width: 90%; height: 80px;
-            background: rgba(15,15,18,0.95); border-radius: 30px;
+            position: fixed; bottom: 25px; left: 5%; width: 90%; height: 75px;
+            background: rgba(20, 20, 25, 0.8); border-radius: 25px;
             display: flex; justify-content: space-around; align-items: center;
-            border: 1px solid var(--border); backdrop-filter: blur(20px); z-index: 1000;
+            border: 1px solid var(--border); backdrop-filter: blur(20px);
         }
         .nav-item {
-            background: none; border: none; color: #666; font-size: 11px;
-            font-weight: bold; display: flex; flex-direction: column; align-items: center;
-            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: none; background: none; color: #555;
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 10px; font-weight: 700; transition: 0.3s;
         }
-        .nav-item span { font-size: 28px; margin-bottom: 4px; transition: 0.3s; }
-        .nav-item.active { color: var(--primary); transform: translateY(-8px) scale(1.1); }
-        .nav-item.active span { filter: drop-shadow(0 0 10px var(--primary-glow)); }
+        .nav-item.active { color: var(--primary); transform: translateY(-5px); }
+        .nav-item span { font-size: 26px; margin-bottom: 4px; transition: 0.3s; }
+        .nav-item.active span { transform: scale(1.2); }
 
-        .float { position: absolute; color: white; font-weight: bold; font-family: 'Orbitron'; font-size: 28px; pointer-events: none; animation: floatUp 0.8s forwards; z-index: 2000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px); } }
+        /* Float Animation */
+        .float-text {
+            position: absolute; color: white; font-family: 'Orbitron';
+            font-weight: 900; font-size: 30px; pointer-events: none;
+            animation: floatMove 0.8s ease-out forwards;
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+        @keyframes floatMove { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120px); } }
+
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <div class="balance-area">
+        <div class="balance-container">
+            <span style="font-size: 24px;">🥕</span>
             <span id="coins">0</span>
         </div>
-        <div class="stats-grid">
-            <div class="stat-box"><small>Profit / Hr</small><b id="pph">0</b></div>
-            <div class="stat-box"><small>Recharge</small><b>1/sec</b></div>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">
+            <div style="color: #888; font-size: 12px;">Profit/hr: <b id="pph" style="color: #fff;">0</b></div>
+            <div style="color: #888; font-size: 12px;">Rank: <b style="color: #fff;">Gold</b></div>
         </div>
     </div>
 
     <div id="home" class="page active-page">
-        <div class="rabbit-outer">
+        <div class="rabbit-platform">
+            <div class="rabbit-glow"></div>
             <div class="rabbit-main" id="tap-btn">
-                <div class="carrot-mouth">🥕</div>
+                <div class="carrot-icon">🥕</div>
             </div>
         </div>
-        <div class="energy-container">
-            <div id="energy-text" style="font-weight:bold; font-size:18px;">1000 / 1000</div>
-            <div class="energy-bar-bg"><div id="energy-fill"></div></div>
+        
+        <div class="energy-box">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px;">
+                <span style="color: #888;">Energy Status</span>
+                <span id="energy-text">1000 / 1000</span>
+            </div>
+            <div class="energy-bar-wrap">
+                <div id="energy-fill"></div>
+            </div>
         </div>
-        <button class="btn-prime" style="margin-top: 20px; width: 250px;" id="daily-btn">Claim Daily Reward</button>
+        
+        <button class="btn-action" style="margin-top: 30px; width: 80%;" onclick="tg.showAlert('Coming Soon!')">🎁 Daily Boost</button>
     </div>
 
     <div id="upgrade" class="page">
-        <h2 style="font-family: 'Orbitron'; margin-top: 20px;">Upgrades</h2>
-        <div id="upgrade-list" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+        <h2 style="font-family: 'Orbitron'; margin: 20px 0;">Mining Center</h2>
+        <div id="upgrade-list" style="width: 100%;"></div>
     </div>
 
     <div id="tasks" class="page">
-        <h2 style="font-family: 'Orbitron'; margin-top: 20px;">Tasks</h2>
-        <p style="color: #888;">Join our channels to earn</p>
+        <h2 style="font-family: 'Orbitron'; margin: 20px 0;">Social Tasks</h2>
         
-        <div class="task-card">
-            <div><b>Join Channel</b><br><small style="color:var(--primary)">+5,000 🥕</small></div>
-            <button class="btn-prime" onclick="openTask(1, 'https://t.me/jkt_earning_zone20')">Join</button>
-            <button class="btn-prime" id="check-1" style="display:none; background:#333;" onclick="verifyTask(1, 5000)">Check</button>
+        <div class="card">
+            <div><b>Subscribe Channel</b><br><small style="color:var(--primary)">+10,000 🥕</small></div>
+            <button class="btn-action" onclick="handleTask(1, 'https://t.me/jkt_earning_zone20', 10000, this)">Join</button>
         </div>
-
-        <div class="task-card">
-            <div><b>Join Group</b><br><small style="color:var(--primary)">+3,000 🥕</small></div>
-            <button class="btn-prime" onclick="openTask(2, 'https://t.me/+cAq8TiohRXIzZmFl')">Join</button>
-            <button class="btn-prime" id="check-2" style="display:none; background:#333;" onclick="verifyTask(2, 3000)">Check</button>
+        
+        <div class="card">
+            <div><b>Join JKT Group</b><br><small style="color:var(--primary)">+5,000 🥕</small></div>
+            <button class="btn-action" onclick="handleTask(2, 'https://t.me/+cAq8TiohRXIzZmFl', 5000, this)">Join</button>
         </div>
     </div>
 
     <div id="profile" class="page">
-        <h2 style="font-family: 'Orbitron'; margin-top: 20px;">Your Stats</h2>
-        <div class="stat-box" style="width: 80%; padding: 30px; text-align: center; margin-top: 20px;">
-            <small>Total Carrots</small>
-            <h1 id="stat-coins" style="color:var(--primary); font-family:'Orbitron';">0</h1>
-            <button class="btn-prime" style="width:100%; margin-top:20px;">Withdraw</button>
+        <h2 style="font-family: 'Orbitron'; margin: 20px 0;">Wallet</h2>
+        <div class="card" style="flex-direction: column; text-align: center; gap: 15px;">
+            <span style="color: #888;">Available Balance</span>
+            <h1 id="prof-coins" style="font-family: 'Orbitron'; margin: 0; font-size: 40px;">0</h1>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="btn-action" style="flex: 1; background: #222;" onclick="tg.showAlert('Min. withdraw 1M carrots')">Withdraw</button>
+                <button class="btn-action" style="flex: 1;" onclick="tg.openTelegramLink('https://t.me/share/url?url=YourBotLink')">Invite</button>
+            </div>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" onclick="nav('home', this)"><span>🏠</span>Home</div>
-        <div class="nav-item" onclick="nav('upgrade', this)"><span>⛏️</span>Upgrade</div>
-        <div class="nav-item" onclick="nav('tasks', this)"><span>📋</span>Tasks</div>
-        <div class="nav-item" onclick="nav('profile', this)"><span>📊</span>Stats</div>
+        <button class="nav-item active" onclick="nav('home', this)"><span>🏠</span>Home</button>
+        <button class="nav-item" onclick="nav('upgrade', this)"><span>⛏️</span>Mining</button>
+        <button class="nav-item" onclick="nav('tasks', this)"><span>📋</span>Tasks</button>
+        <button class="nav-item" onclick="nav('profile', this)"><span>📊</span>Wallet</button>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let coins = parseFloat(localStorage.getItem('rb_coins')) || 0;
-        let energy = parseFloat(localStorage.getItem('rb_energy')) || 1000;
+        let coins = parseFloat(localStorage.getItem('rabbit_coins')) || 0;
+        let energy = parseFloat(localStorage.getItem('rabbit_energy')) || 1000;
         let pph = 0;
         const maxEnergy = 1000;
 
-        const upgrades = [
-            {id: 'm1', name: 'Rabbit Miner', icon: '🐰', level: parseInt(localStorage.getItem('lv_m1') || '0'), cost: 100, profit: 5},
-            {id: 'm2', name: 'Carrot Farm', icon: '🥕', level: parseInt(localStorage.getItem('lv_m2') || '0'), cost: 500, profit: 20}
+        const miners = [
+            {id: 'm1', name: 'Nano Miner', icon: '🤖', level: parseInt(localStorage.getItem('l1') || '0'), cost: 200, profit: 10},
+            {id: 'm2', name: 'Rabbit Drill', icon: '🚜', level: parseInt(localStorage.getItem('l2') || '0'), cost: 1000, profit: 50},
+            {id: 'm3', name: 'Carrot Factory', icon: '🏭', level: parseInt(localStorage.getItem('l3') || '0'), cost: 5000, profit: 250}
         ];
 
-        function calculateStats() {
+        function sync() {
             pph = 0;
-            upgrades.forEach(u => pph += u.level * u.profit);
-            document.getElementById('pph').innerText = pph;
+            miners.forEach(m => pph += m.level * m.profit);
+            document.getElementById('coins').innerText = Math.floor(coins).toLocaleString();
+            document.getElementById('prof-coins').innerText = Math.floor(coins).toLocaleString();
+            document.getElementById('pph').innerText = pph.toLocaleString();
+            document.getElementById('energy-text').innerText = Math.floor(energy) + " / " + maxEnergy;
+            document.getElementById('energy-fill').style.width = (energy / maxEnergy * 100) + "%";
+            
+            localStorage.setItem('rabbit_coins', coins);
+            localStorage.setItem('rabbit_energy', energy);
         }
 
         function renderUpgrades() {
             const list = document.getElementById('upgrade-list');
             list.innerHTML = '';
-            upgrades.forEach(u => {
-                const currentCost = Math.floor(u.cost * Math.pow(1.5, u.level));
+            miners.forEach(m => {
+                const cost = Math.floor(m.cost * Math.pow(1.6, m.level));
                 list.innerHTML += `
-                    <div class="task-card">
-                        <div>${u.icon} <b>${u.name}</b><br><small>Lv ${u.level} | +${u.profit}/hr</small></div>
-                        <button class="btn-prime" onclick="buyUpgrade('${u.id}')">${currentCost}</button>
-                    </div>`;
+                <div class="card">
+                    <div><span style="font-size:30px">${m.icon}</span> <b>${m.name}</b><br><small>Lv ${m.level} • +${m.profit}/hr</small></div>
+                    <button class="btn-action" onclick="buyMiner('${m.id}')">${cost.toLocaleString()}</button>
+                </div>`;
             });
         }
 
-        function buyUpgrade(id) {
-            const u = upgrades.find(x => x.id === id);
-            const currentCost = Math.floor(u.cost * Math.pow(1.5, u.level));
-            if(coins >= currentCost) {
-                coins -= currentCost;
-                u.level++;
-                localStorage.setItem('lv_'+id, u.level);
-                calculateStats(); renderUpgrades(); updateUI();
+        function buyMiner(id) {
+            const m = miners.find(x => x.id === id);
+            const cost = Math.floor(m.cost * Math.pow(1.6, m.level));
+            if(coins >= cost) {
+                coins -= cost;
+                m.level++;
+                localStorage.setItem('l'+id.charAt(1), m.level);
+                sync(); renderUpgrades();
                 tg.HapticFeedback.notificationOccurred('success');
             } else { tg.showAlert("Need more carrots!"); }
         }
 
-        function openTask(id, url) {
-            tg.openTelegramLink(url);
-            event.target.style.display = 'none';
-            document.getElementById('check-'+id).style.display = 'block';
-        }
-
-        function verifyTask(id, reward) {
-            const btn = document.getElementById('check-'+id);
-            btn.innerText = "Checking...";
-            setTimeout(() => {
+        function handleTask(id, url, reward, btn) {
+            if(btn.innerText === "Claim") {
                 coins += reward;
-                btn.innerText = "Claimed ✅";
+                btn.innerText = "Done ✅";
                 btn.disabled = true;
-                updateUI();
-                tg.showAlert("You got "+reward+" Carrots!");
-            }, 3000);
+                sync();
+                tg.showAlert("Reward Claimed!");
+                return;
+            }
+            tg.openTelegramLink(url);
+            btn.innerText = "Check";
+            setTimeout(() => { btn.innerText = "Claim"; btn.style.background = "#2ecc71"; }, 3000);
         }
 
         const tapBtn = document.getElementById('tap-btn');
@@ -258,29 +315,16 @@
             e.preventDefault();
             if(energy >= 1) {
                 coins += 1; energy -= 1;
-                tapBtn.classList.add('tapped');
-                setTimeout(() => tapBtn.classList.remove('tapped'), 100);
-                
-                const touch = e.touches[0];
+                const t = e.touches[0];
                 const f = document.createElement('div');
-                f.className = 'float'; f.innerText = '+1';
-                f.style.left = touch.clientX + 'px'; f.style.top = touch.clientY + 'px';
+                f.className = 'float-text'; f.innerText = '+1';
+                f.style.left = t.clientX + 'px'; f.style.top = t.clientY + 'px';
                 document.body.appendChild(f);
                 setTimeout(() => f.remove(), 800);
-                
-                updateUI();
-                tg.HapticFeedback.impactOccurred('medium');
+                sync();
+                tg.HapticFeedback.impactOccurred('heavy');
             }
         });
-
-        function updateUI() {
-            document.getElementById('coins').innerText = Math.floor(coins).toLocaleString();
-            document.getElementById('stat-coins').innerText = Math.floor(coins).toLocaleString();
-            document.getElementById('energy-fill').style.width = (energy / maxEnergy * 100) + '%';
-            document.getElementById('energy-text').innerText = Math.floor(energy) + " / " + maxEnergy;
-            localStorage.setItem('rb_coins', coins);
-            localStorage.setItem('rb_energy', energy);
-        }
 
         function nav(id, btn) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
@@ -293,10 +337,10 @@
         setInterval(() => {
             coins += (pph / 3600);
             if(energy < maxEnergy) energy += 1;
-            updateUI();
+            sync();
         }, 1000);
 
-        calculateStats(); renderUpgrades(); updateUI();
+        sync(); renderUpgrades();
     </script>
 </body>
 </html>
