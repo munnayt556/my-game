@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rabbit Miner Pro - Max</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff9800;
+            --primary-glow: rgba(255, 152, 0, 0.4);
+            --bg: #08080a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0; background-color: var(--bg);
+            background-image: radial-gradient(circle at 50% 10%, #1a1a20 0%, #08080a 100%);
+            color: white; font-family: 'Inter', sans-serif; height: 100vh;
+            overflow: hidden; display: flex; flex-direction: column;
+            -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Header Section */
+        .header { padding: 30px 20px; text-align: center; }
+        .rank-tag { font-family: 'Orbitron'; font-size: 10px; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+        
+        #coins {
+            font-size: 52px; font-family: 'Orbitron', sans-serif; font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 0%, #ff9800 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px; margin-top: 15px;
+        }
+        .stat-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            padding: 10px; border-radius: 15px; backdrop-filter: blur(10px);
+        }
+        .stat-card small { display: block; color: #888; font-size: 10px; text-transform: uppercase; }
+        .stat-card b { font-size: 14px; color: #fff; }
+
+        /* Pages */
+        .page { display: none; flex-direction: column; align-items: center; flex: 1; overflow-y: auto; padding-bottom: 120px; }
+        .active-page { display: flex; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Rabbit Central */
+        .rabbit-container { position: relative; width: 300px; height: 320px; display: flex; justify-content: center; align-items: center; margin-top: 20px; }
+        .rabbit-main {
+            width: 200px; height: 210px; background: #ffffff; border-radius: 50% 50% 45% 45%;
+            position: relative; cursor: pointer; transition: transform 0.05s;
+            box-shadow: 0 15px 0 #ddd, 0 30px 50px rgba(0,0,0,0.6); z-index: 10;
+        }
+        .rabbit-main:active { transform: scale(0.92) translateY(10px); box-shadow: 0 5px 0 #ddd; }
+        
+        .rabbit-main::before, .rabbit-main::after {
+            content: ''; position: absolute; top: -75px; width: 55px; height: 130px;
+            background: #fff; border-radius: 50% 50% 20% 20%; border-top: 20px solid #ffebee;
+        }
+        .rabbit-main::before { left: 30px; transform: rotate(-12deg); }
+        .rabbit-main::after { right: 30px; transform: rotate(12deg); }
+        .mouth-carrot { position: absolute; top: 100px; left: 50%; transform: translateX(-50%) rotate(15deg); font-size: 65px; pointer-events: none; }
+
+        /* Energy UI */
+        .energy-wrapper { width: 85%; margin-top: 30px; }
+        .energy-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
+        .energy-bar { height: 14px; background: #1a1a1f; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; padding: 2px; }
+        #energy-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #ff9800, #ffc107); border-radius: 10px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* List Items */
+        .list-card {
+            width: 90%; background: var(--card-bg); border: 1px solid var(--border);
+            padding: 15px; border-radius: 20px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .list-info b { font-size: 16px; display: block; }
+        .list-info span { font-size: 12px; color: var(--primary); font-weight: bold; }
+
+        .btn-action {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            border: none; color: white; padding: 12px 20px; border-radius: 15px;
+            font-weight: bold; font-family: 'Orbitron'; font-size: 12px;
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.2);
+        }
+
+        /* Nav Bar */
+        .nav-bar {
+            position: fixed; bottom: 25px; left: 5%; width: 90%; height: 80px;
+            background: rgba(20, 20, 25, 0.95); border-radius: 30px;
+            display: flex; justify-content: space-around; align-items: center;
+            border: 1px solid var(--border); backdrop-filter: blur(20px); z-index: 1000;
+        }
+        .nav-item { border: none; background: none; color: #555; display: flex; flex-direction: column; align-items: center; font-size: 11px; font-weight: 800; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-5px); }
+        .nav-item span { font-size: 28px; margin-bottom: 3px; }
+
+        /* Pop Up Text */
+        .pop { position: absolute; color: white; font-family: 'Orbitron'; font-weight: 900; font-size: 35px; pointer-events: none; animation: popUp 0.7s ease-out forwards; z-index: 2000; text-shadow: 0 0 10px var(--primary); }
+        @keyframes popUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-150px); } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="rank-tag" id="rank-name">Bronze Miner</div>
+        <div id="coins">0</div>
+        <div class="stats-grid">
+            <div class="stat-card"><small>Hourly Profit</small>+<b id="pph-val">0</b></div>
+            <div class="stat-card"><small>Tap Power</small>+<b id="tap-val">1</b></div>
+        </div>
+    </div>
+
+    <div id="home" class="page active-page">
+        <div class="rabbit-container">
+            <div class="rabbit-main" id="tap-btn">
+                <div class="mouth-carrot">🥕</div>
+            </div>
+        </div>
+        <div class="energy-wrapper">
+            <div class="energy-info">
+                <span>⚡ Energy</span>
+                <span id="energy-text">1000 / 1000</span>
+            </div>
+            <div class="energy-bar"><div id="energy-fill"></div></div>
+        </div>
+    </div>
+
+    <div id="upgrade" class="page">
+        <h2 style="font-family: 'Orbitron'; margin: 20px 0;">Upgrades</h2>
+        <div id="upgrade-list" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+    </div>
+
+    <div id="tasks" class="page">
+        <h2 style="font-family: 'Orbitron'; margin: 20px 0;">Earn More</h2>
+        <div class="list-card">
+            <div class="list-info"><b>Official Channel</b><span>+10,000 🥕</span></div>
+            <button class="btn-action" onclick="handleTask(1, 'https://t.me/jkt_earning_zone20', 10000, this)">Join</button>
+        </div>
+        <div class="list-card">
+            <div class="list-info"><b>Community Group</b><span>+5,000 🥕</span></div>
+            <button class="btn-action" onclick="handleTask(2, 'https://t.me/+cAq8TiohRXIzZmFl', 5000, this)">Join</button>
+        </div>
+    </div>
+
+    <div id="stats" class="page">
+        <h2 style="font-family: 'Orbitron'; margin: 20px 0;">Your Profile</h2>
+        <div class="stat-card" style="width: 80%; padding: 40px; text-align: center;">
+            <small>Total Carrots Collected</small>
+            <h1 id="total-coins" style="font-family: 'Orbitron'; color: var(--primary); font-size: 40px; margin: 10px 0;">0</h1>
+            <button class="btn-action" style="width: 100%; margin-top: 20px;" onclick="tg.showAlert('Withdrawal coming soon in v2.0!')">Withdraw Carrots</button>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="nav('home', this)"><span>🏠</span>Home</button>
+        <button class="nav-item" onclick="nav('upgrade', this)"><span>🚀</span>Upgrade</button>
+        <button class="nav-item" onclick="nav('tasks', this)"><span>💰</span>Tasks</button>
+        <button class="nav-item" onclick="nav('stats', this)"><span>📈</span>Stats</button>
+    </nav>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Game State
+        let coins = parseFloat(localStorage.getItem('r_c')) || 0;
+        let energy = parseFloat(localStorage.getItem('r_e')) || 1000;
+        let pph = 0;
+
+        // Upgrades Configuration
+        const upgrades = [
+            { id: 'tap', name: 'Multi-Tap', icon: '⚡', level: parseInt(localStorage.getItem('u_t') || '0'), cost: 500, mult: 1.8, type: 'tap', value: 1 },
+            { id: 'energy', name: 'Max Energy', icon: '🔋', level: parseInt(localStorage.getItem('u_e') || '0'), cost: 800, mult: 1.6, type: 'energy', value: 500 },
+            { id: 'miner', name: 'Auto Miner', icon: '⛏️', level: parseInt(localStorage.getItem('u_m') || '0'), cost: 200, mult: 1.5, type: 'pph', value: 10 },
+            { id: 'farm', name: 'Carrot Farm', icon: '🚜', level: parseInt(localStorage.getItem('u_f') || '0'), cost: 1500, mult: 1.5, type: 'pph', value: 50 }
+        ];
+
+        function init() {
+            renderUpgrades();
+            refreshUI();
+            startLoop();
+        }
+
+        function refreshUI() {
+            const currentTap = 1 + (upgrades.find(u => u.id === 'tap').level);
+            const currentMaxE = 1000 + (upgrades.find(u => u.id === 'energy').level * 500);
+            
+            // PPH Calculation
+            pph = 0;
+            upgrades.forEach(u => { if(u.type === 'pph') pph += (u.level * u.value); });
+
+            // Update Labels
+            document.getElementById('coins').innerText = Math.floor(coins).toLocaleString();
+            document.getElementById('total-coins').innerText = Math.floor(coins).toLocaleString();
+            document.getElementById('pph-val').innerText = pph.toLocaleString();
+            document.getElementById('tap-val').innerText = currentTap;
+            document.getElementById('energy-text').innerText = Math.floor(energy) + " / " + currentMaxE;
+            document.getElementById('energy-fill').style.width = (energy / currentMaxE * 100) + "%";
+
+            // Rank Logic
+            let rank = "Bronze Miner";
+            if(coins > 50000) rank = "Silver Miner";
+            if(coins > 200000) rank = "Gold Miner";
+            if(coins > 1000000) rank = "Diamond King";
+            document.getElementById('rank-name').innerText = rank;
+
+            // Save Data
+            localStorage.setItem('r_c', coins);
+            localStorage.setItem('r_e', energy);
+        }
+
+        function renderUpgrades() {
+            const list = document.getElementById('upgrade-list');
+            list.innerHTML = '';
+            upgrades.forEach(u => {
+                const cost = Math.floor(u.cost * Math.pow(u.mult, u.level));
+                list.innerHTML += `
+                    <div class="list-card">
+                        <div class="list-info"><b>${u.icon} ${u.name}</b><span>Lv ${u.level}</span></div>
+                        <button class="btn-action" onclick="buyUpgrade('${u.id}')">${cost.toLocaleString()}</button>
+                    </div>`;
+            });
+        }
+
+        function buyUpgrade(id) {
+            const u = upgrades.find(x => x.id === id);
+            const cost = Math.floor(u.baseCost || u.cost * Math.pow(u.mult, u.level));
+            if(coins >= cost) {
+                coins -= cost;
+                u.level++;
+                localStorage.setItem('u_'+id.charAt(0), u.level);
+                tg.HapticFeedback.notificationOccurred('success');
+                renderUpgrades();
+                refreshUI();
+            } else {
+                tg.showAlert("Not enough carrots! Keep tapping!");
+            }
+        }
+
+        function handleTask(id, url, reward, btn) {
+            if(btn.innerText === "Claim") {
+                coins += reward; btn.innerText = "Claimed"; btn.disabled = true;
+                refreshUI(); return;
+            }
+            tg.openTelegramLink(url);
+            btn.innerText = "Checking...";
+            setTimeout(() => { btn.innerText = "Claim"; btn.style.background = "#2ecc71"; }, 3000);
+        }
+
+        // Tap Mechanics
+        const tapBtn = document.getElementById('tap-btn');
+        tapBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const tapPower = 1 + (upgrades.find(u => u.id === 'tap').level);
+            if(energy >= tapPower) {
+                coins += tapPower;
+                energy -= tapPower;
+                
+                const touch = e.touches[0];
+                const pop = document.createElement('div');
+                pop.className = 'pop'; pop.innerText = '+' + tapPower;
+                pop.style.left = touch.clientX + 'px'; pop.style.top = touch.clientY + 'px';
+                document.body.appendChild(pop);
+                setTimeout(() => pop.remove(), 700);
+
+                refreshUI();
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+        });
+
+        function nav(id, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active-page');
+            btn.classList.add('active');
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        function startLoop() {
+            setInterval(() => {
+                const maxE = 1000 + (upgrades.find(u => u.id === 'energy').level * 500);
+                coins += (pph / 3600);
+                if(energy < maxE) energy += 1.2;
+                refreshUI();
+            }, 1000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
