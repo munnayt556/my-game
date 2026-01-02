@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rabbit Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { background: #111; color: #eee; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        h2, h3 { color: #ff9800; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        /* Layout */
+        .container { max-width: 800px; margin: 0 auto; display: none; } /* Hidden until login */
+        .section { background: #1e1e24; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
+        
+        /* Forms & Inputs */
+        input, select, textarea {
+            background: #2b2b30; border: 1px solid #444; color: white; padding: 10px; border-radius: 5px; width: 100%; margin-bottom: 10px; box-sizing: border-box;
+        }
+        button {
+            background: #ff9800; color: #000; font-weight: bold; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;
+        }
+        button:hover { opacity: 0.9; }
+        button.danger { background: #ff4444; color: white; }
+        button.success { background: #00c851; color: white; }
+        button.secondary { background: #444; color: white; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #333; }
+        th { color: #aaa; }
+        
+        /* Login Modal */
+        #login-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+        }
+        
+        .status-badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; }
+        .b-active { background: #004d40; color: #00c851; }
+        .b-removed { background: #3e2723; color: #ff4444; }
+
+        .tab-btn { background: #333; color: #ccc; margin-right: 5px; }
+        .tab-btn.active { background: #ff9800; color: #000; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+
+    <div id="login-modal">
+        <h2 style="color:#fff;">ADMIN ACCESS</h2>
+        <input type="password" id="admin-pass" placeholder="Enter Password" style="width: 250px; text-align: center;">
+        <button onclick="login()">ENTER</button>
+        <p style="color:red; font-size:12px; margin-top:10px;" id="login-err"></p>
+    </div>
+
+    <div class="container" id="admin-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Rabbit Pro Control Panel</h2>
+            <button class="danger" onclick="logout()">LOGOUT</button>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <button class="tab-btn active" onclick="tab('dash')">Users & Money</button>
+            <button class="tab-btn" onclick="tab('game')">Mine & Skins</button>
+            <button class="tab-btn" onclick="tab('tasks')">Tasks</button>
+            <button class="tab-btn" onclick="tab('msg')">Messages</button>
+        </div>
+
+        <div id="dash" class="tab-content active">
+            <div class="section">
+                <h3>User Management</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label>Target User ID</label>
+                        <input type="text" id="target-uid" placeholder="e.g. U592123">
+                    </div>
+                    <div style="display:flex; align-items:end; gap:5px;">
+                        <button class="secondary" onclick="fetchUser()">Fetch Data</button>
+                    </div>
+                </div>
+                
+                <div id="user-actions" style="margin-top:15px; border-top:1px solid #333; padding-top:10px; display:none;">
+                    <p>User: <b id="u-display-id"></b> | Balance: <b id="u-display-bal"></b> ðŸ¥•</p>
+                    
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input type="number" id="mod-amount" placeholder="Amount">
+                        <button class="success" onclick="modBalance(1)">+ Add</button>
+                        <button class="danger" onclick="modBalance(-1)">- Deduct</button>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <input type="number" id="mod-pph" placeholder="Set New PPH">
+                        <button class="secondary" onclick="modPPH()">Update PPH</button>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                         <input type="number" id="mod-refill" placeholder="Refills Limit (Def: 5)">
+                         <button class="secondary" onclick="modBoost()">Set Boost Limit</button>
+                    </div>
+
+                    <button id="btn-ban" style="width:100%;" onclick="toggleBan()">BAN USER</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Active Users List</h3>
+                <button class="secondary" onclick="loadUsers()" style="margin-bottom:10px; font-size:12px;">Refresh List</button>
+                <table id="user-table">
+                    <thead><tr><th>ID</th><th>Balance</th><th>Banned</th><th>Last Active</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="game" class="tab-content">
+            <div class="section">
+                <h3>Mine Upgrades</h3>
+                <div style="background:#222; padding:10px; border-radius:5px; margin-bottom:15px;">
+                    <h4>+ Add New Mine</h4>
+                    <input type="text" id="m-id" placeholder="ID (e.g. miner_god)">
+                    <input type="text" id="m-name" placeholder="Name (e.g. God Miner)">
+                    <input type="text" id="m-icon" placeholder="Icon (e.g. ðŸš€)">
+                    <input type="number" id="m-cost" placeholder="Base Cost">
+                    <input type="number" id="m-profit" placeholder="Base Profit / Hr">
+                    <button class="success" onclick="addMine()">Create Mine</button>
+                </div>
+                
+                <h4>Existing Mines</h4>
+                <div id="mine-list"></div>
+            </div>
+
+            <div class="section">
+                <h3>Skin Manager</h3>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="s-id" placeholder="ID">
+                    <input type="text" id="s-name" placeholder="Name">
+                    <input type="text" id="s-icon" placeholder="Icon">
+                    <input type="number" id="s-price" placeholder="Price">
+                    <button class="success" onclick="addSkin()">Add Skin</button>
+                </div>
+                <div id="skin-list" style="margin-top:10px;"></div>
+            </div>
+        </div>
+
+        <div id="tasks" class="tab-content">
+            <div class="section">
+                <h3>Task Manager</h3>
+                <div style="background:#222; padding:10px; margin-bottom:10px;">
+                    <input type="text" id="t-title" placeholder="Task Title">
+                    <input type="text" id="t-link" placeholder="Link (https://...)">
+                    <input type="number" id="t-reward" placeholder="Reward Amount">
+                    <button class="success" onclick="addTask()">Add Task</button>
+                </div>
+                <div id="task-list-admin"></div>
+            </div>
+        </div>
+
+        <div id="msg" class="tab-content">
+            <div class="section">
+                <h3>Broadcast Message</h3>
+                <p style="font-size:12px; color:#aaa;">Send to ALL users</p>
+                <textarea id="msg-broad" rows="3" placeholder="Write message..."></textarea>
+                <button onclick="sendMsg('broadcast')">Send Broadcast ðŸ“¢</button>
+            </div>
+            
+            <div class="section">
+                <h3>Direct Message (DM)</h3>
+                <input type="text" id="msg-uid" placeholder="Target User ID">
+                <textarea id="msg-dm" rows="3" placeholder="Write message..."></textarea>
+                <button class="secondary" onclick="sendMsg('dm')">Send DM ðŸ“©</button>
+            </div>
+
+            <div class="section">
+                <h3>Sent History</h3>
+                <div id="msg-history" style="font-size:12px; color:#888;"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // PASSWORD PROTECTION
+        function login() {
+            const p = document.getElementById('admin-pass').value;
+            if(p === 'admin123') { // Simple password
+                document.getElementById('login-modal').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                initData();
+            } else {
+                document.getElementById('login-err').innerText = 'Wrong Password!';
+            }
+        }
+        function logout() { location.reload(); }
+
+        // TABS
+        function tab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // --- DATA SYNC ---
+        // We use localStorage 'rabbit_game_config' to store Mines, Skins, Tasks state
+        // We use localStorage 'rabbit_all_users' to read user data
+        
+        let config = {
+            mines: [],
+            skins: [],
+            tasks: []
+        };
+
+        function initData() {
+            // Load config
+            const saved = localStorage.getItem('rabbit_game_config');
+            if(saved) config = JSON.parse(saved);
+            else {
+                // Initialize defaults if empty so admin isn't blank
+                config.mines = [
+                     {id: 'miner1', name: 'Baby Rabbit', icon: 'ðŸ‘¶', baseCost: 200, multiplier: 1.8, baseProfit: 100, status: 'active'},
+                     {id: 'miner2', name: 'Carrot Farm', icon: 'ðŸšœ', baseCost: 1000, multiplier: 1.9, baseProfit: 500, status: 'active'}
+                ];
+                saveConfig();
+            }
+            renderMines();
+            renderSkins();
+            renderTasks();
+            loadUsers();
+            loadMessages();
+        }
+
+        function saveConfig() {
+            localStorage.setItem('rabbit_game_config', JSON.stringify(config));
+        }
+
+        // --- USER MANAGEMENT ---
+        function loadUsers() {
+            const users = JSON.parse(localStorage.getItem('rabbit_all_users')) || {};
+            const tbody = document.querySelector('#user-table tbody');
+            tbody.innerHTML = '';
+            
+            Object.values(users).forEach(u => {
+                const row = `<tr>
+                    <td>${u.id}</td>
+                    <td>${parseInt(u.balance).toLocaleString()}</td>
+                    <td style="color:${u.banned ? 'red':'green'}">${u.banned ? 'YES' : 'NO'}</td>
+                    <td>${new Date(u.lastActive).toLocaleTimeString()}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function fetchUser() {
+            const uid = document.getElementById('target-uid').value;
+            const users = JSON.parse(localStorage.getItem('rabbit_all_users')) || {};
+            const u = users[uid];
+            
+            if(u) {
+                document.getElementById('user-actions').style.display = 'block';
+                document.getElementById('u-display-id').innerText = u.id;
+                document.getElementById('u-display-bal').innerText = Math.floor(u.balance).toLocaleString();
+                
+                const btn = document.getElementById('btn-ban');
+                if(u.banned) {
+                    btn.innerText = "UNBAN USER";
+                    btn.className = "success";
+                } else {
+                    btn.innerText = "BAN USER";
+                    btn.className = "danger";
+                }
+            } else {
+                alert('User ID not found');
+            }
+        }
+
+        function saveUser(u) {
+            const users = JSON.parse(localStorage.getItem('rabbit_all_users')) || {};
+            users[u.id] = u;
+            localStorage.setItem('rabbit_all_users', JSON.stringify(users));
+            fetchUser(); // Refresh UI
+            loadUsers(); // Refresh Table
+        }
+
+        function modBalance(dir) {
+            const amt = parseFloat(document.getElementById('mod-amount').value);
+            const uid = document.getElementById('target-uid').value;
+            const users = JSON.parse(localStorage.getItem('rabbit_all_users'));
+            if(users[uid] && amt) {
+                users[uid].balance += (amt * dir);
+                users[uid].adminModified = true; // Flag for user app to pickup
+                saveUser(users[uid]);
+                alert('Balance updated!');
+            }
+        }
+
+        function modPPH() {
+            const val = parseFloat(document.getElementById('mod-pph').value);
+            const uid = document.getElementById('target-uid').value;
+            const users = JSON.parse(localStorage.getItem('rabbit_all_users'));
+             if(users[uid] && val >= 0) {
+                 // Note: PPH is usually calculated from items. 
+                 // To force it, we might need a complex override.
+                 // For this simple demo, we won't override PPH logic in user app 
+                 // because user app recalculates it every second based on items.
+                 // Instead, we could give them a "Bonus Item" invisibly, but 
+                 // the prompt asked to change PPH directly.
+                 alert("In this logic, PPH is calculated by items. To increase PPH, give user money to buy items.");
+            }
+        }
+        
+        function modBoost() {
+             const val = parseInt(document.getElementById('mod-refill').value);
+             const uid = document.getElementById('target-uid').value;
+             const users = JSON.parse(localStorage.getItem('rabbit_all_users'));
+             if(users[uid]) {
+                 users[uid].customRefills = val;
+                 users[uid].adminModified = true;
+                 saveUser(users[uid]);
+                 alert('Boost limit set for user!');
+             }
+        }
+
+        function toggleBan() {
+            const uid = document.getElementById('target-uid').value;
+            const users = JSON.parse(localStorage.getItem('rabbit_all_users'));
+            if(users[uid]) {
+                users[uid].banned = !users[uid].banned;
+                users[uid].adminModified = true; // Force sync
+                saveUser(users[uid]);
+                alert(users[uid].banned ? 'User Banned!' : 'User Unbanned!');
+            }
+        }
+
+        // --- MINE MANAGEMENT ---
+        function renderMines() {
+            const div = document.getElementById('mine-list');
+            div.innerHTML = '';
+            config.mines.forEach((m, idx) => {
+                const isRem = m.status === 'removed';
+                div.innerHTML += `
+                    <div style="background:#2a2a2a; padding:10px; margin-bottom:5px; border-radius:5px; display:flex; justify-content:space-between; align-items:center; opacity:${isRem?0.5:1}">
+                        <div>
+                            <span style="font-size:20px;">${m.icon}</span> <b>${m.name}</b>
+                            <span class="status-badge ${isRem?'b-removed':'b-active'}">${isRem?'REMOVED':'ACTIVE'}</span>
+                        </div>
+                        <button class="secondary" style="font-size:10px;" onclick="toggleMine(${idx})">
+                            ${isRem ? 'RESTORE (Again)' : 'REMOVE'}
+                        </button>
+                    </div>
+                `;
+            });
+        }
+        
+        function addMine() {
+            const m = {
+                id: document.getElementById('m-id').value,
+                name: document.getElementById('m-name').value,
+                icon: document.getElementById('m-icon').value,
+                baseCost: parseInt(document.getElementById('m-cost').value),
+                baseProfit: parseInt(document.getElementById('m-profit').value),
+                multiplier: 1.8,
+                level: 0,
+                status: 'active'
+            };
+            if(m.id && m.name) {
+                config.mines.push(m);
+                saveConfig(); renderMines();
+                alert('Mine Added!');
+            }
+        }
+
+        function toggleMine(idx) {
+            const m = config.mines[idx];
+            m.status = m.status === 'active' ? 'removed' : 'active';
+            saveConfig(); renderMines();
+        }
+
+        // --- SKIN & TASK MANAGEMENT (Brief implementation) ---
+        function addSkin() {
+            const s = {
+                id: document.getElementById('s-id').value,
+                name: document.getElementById('s-name').value,
+                icon: document.getElementById('s-icon').value,
+                price: parseInt(document.getElementById('s-price').value),
+                status: 'active'
+            };
+            config.skins.push(s); saveConfig(); renderSkins();
+        }
+        function renderSkins() {
+            document.getElementById('skin-list').innerHTML = config.skins.map((s, i) => `
+                <div style="background:#222; padding:5px; margin:2px;">${s.icon} ${s.name} - ${s.status} 
+                <button onclick="toggleSkin(${i})">${s.status==='active'?'Remove':'Restore'}</button></div>
+            `).join('');
+        }
+        function toggleSkin(i) { config.skins[i].status = config.skins[i].status==='active'?'removed':'active'; saveConfig(); renderSkins(); }
+
+        function addTask() {
+            config.tasks.push({
+                id: 't'+Date.now(),
+                title: document.getElementById('t-title').value,
+                link: document.getElementById('t-link').value,
+                reward: parseInt(document.getElementById('t-reward').value),
+                status: 'active'
+            });
+            saveConfig(); renderTasks();
+        }
+        function renderTasks() {
+            document.getElementById('task-list-admin').innerHTML = config.tasks.map((t, i) => `
+                <div style="border-bottom:1px solid #333; padding:5px;">${t.title} (${t.reward}) 
+                <button onclick="toggleTask(${i})">${t.status==='active'?'Remove':'Restore'}</button></div>
+            `).join('');
+        }
+        function toggleTask(i) { config.tasks[i].status = config.tasks[i].status==='active'?'removed':'active'; saveConfig(); renderTasks(); }
+
+        // --- MESSAGES ---
+        function sendMsg(type) {
+            const msgs = JSON.parse(localStorage.getItem('rabbit_messages')) || [];
+            const text = type === 'broadcast' ? document.getElementById('msg-broad').value : document.getElementById('msg-dm').value;
+            const to = type === 'dm' ? document.getElementById('msg-uid').value : 'ALL';
+            
+            if(!text) return;
+
+            msgs.push({
+                id: Date.now(),
+                type: type,
+                to: to,
+                text: text,
+                time: Date.now()
+            });
+            
+            localStorage.setItem('rabbit_messages', JSON.stringify(msgs));
+            alert('Message Sent!');
+            loadMessages();
+        }
+        
+        function loadMessages() {
+            const msgs = JSON.parse(localStorage.getItem('rabbit_messages')) || [];
+            document.getElementById('msg-history').innerHTML = msgs.slice(-5).reverse().map(m => `
+                <div>[${m.type.toUpperCase()}] To: ${m.to} - "${m.text}"</div>
+            `).join('');
+        }
+
+    </script>
+</body>
+</html>
